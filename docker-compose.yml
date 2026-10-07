@@ -1,0 +1,21 @@
+# Uso:
+#   Con los 3 ESP32 reales (PC conectado a la red ENJAMBRE_ACO):
+#       docker compose up --build gemelo
+#   Sin hardware (3 ESP32 emulados en otro contenedor):
+#       docker compose --profile emulador up --build
+#   Visor: http://localhost:8080
+services:
+  gemelo:
+    build: .
+    image: enjambre-aco-gemelo
+    ports:
+      - "8080:8080"        # visor web (MJPEG)
+      - "4211:4211/udp"    # estado + feromonas que envían los ESP32
+    command: ["python", "gemelo.py", "--nodos", "${NODOS:-192.168.4.1,192.168.4.12,192.168.4.13}"]
+
+  emulador:
+    profiles: ["emulador"]
+    build: .
+    image: enjambre-aco-gemelo
+    depends_on: [gemelo]
+    command: ["python", "emulador_nodos.py", "--gemelo", "gemelo"]
